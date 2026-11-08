@@ -1,6 +1,8 @@
 name: BlinkPuzz Daily Production
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
   schedule:
     # Once daily, at 06:17 UTC. GitHub schedules may be delayed.
