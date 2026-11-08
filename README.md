@@ -1,25 +1,36 @@
-# BlinkPuzz — Automated English puzzle Reels
+# BlinkPuzz – Automated English Puzzle Reels
 
-A free-to-run Instagram content-production pipeline. Uses original visuals and sounds; no paid generative AI services required.
+Standalone, zero-subscription-cost video-generation pipeline for **@blinkpuzz**.
+The Vibsnaxx project is separate and never targeted.
 
 ## Status
-- **Generation:** prepared and tested locally, activation on GitHub in progress.
-- **Instagram publishing:** **OFF by default**. Needs a separate BlinkPuzz Instagram professional account connected to Buffer, a Buffer API key, and verified hosted video URLs.
-- **Safety:** no interaction with the existing Vibsnaxx repository or account.
+- Original English vertical puzzle Reel generator: installed.
+- GitHub Actions: configured for a rolling 7-day video buffer (06:17 UTC daily, also push/manual).
+- GitHub Pages: choose **Settings → Pages → Source: GitHub Actions** to activate hosting. This step needs a one-time owner action.
+- Buffer API key: stored in **Actions secret `BUFFER_API_KEY`** by the owner. Do not paste secrets into chat or source files.
+- Instagram publishing: **OFF** until `AUTO_PUBLISH=true` repository **variable** is explicitly set *after* testing. No live posts confirmed.
 
-## Production process
-A GitHub Actions workflow runs on a daily schedule, creates a rolling seven-day supply of portrait 1080 × 1920 H.264/AAC Reels, validates the results, commits assets into `docs/media` and (after Pages is enabled) deploys the media.
+## Automatic workflow
+1. Check that generated puzzles have unique and valid answers.
+2. Make the next 7 days of 1080x1920, 8-second Reels.
+3. Validate the actual H.264/AAC output.
+4. Commit the generated MP4/JPEG/JSON under `docs/media/`.
+5. Deploy `docs/` on GitHub Pages after Pages is enabled.
+6. Verify the Buffer API connection for the **exact** Instagram channel `@blinkpuzz`. This step schedules nothing until `AUTO_PUBLISH` is set to `true`.
+7. Only when unlocked: schedule eligible clips for **19:30 Europe/Berlin**. Reject any other account/channel. Reject duplicate challenge markers.
 
-## To activate publishing later
-1. Create/connect the new BlinkPuzz Instagram professional account to Buffer.
-2. In **Settings → Pages**, set deployment source to **GitHub Actions**.
-3. Set Actions variables `ENABLE_PAGES=true`, `MEDIA_BASE_URL=https://lucadimichele-svg.github.io/blinkpuzz-automation/media`, `BUFFER_ORGANIZATION_ID`, `BUFFER_CHANNEL_ID`, `EXPECTED_IG_HANDLE`.
-4. Set Actions secret `BUFFER_API_KEY`. Never paste it into repository files.
-5. Confirm that the media URLs are publicly accessible and the exact Buffer channel matches the intended account. Only then set `AUTO_PUBLISH=true`.
+No manual organization or channel IDs are required: the publisher discovers the exact @blinkpuzz Instagram channel via Buffer API and fails closed if it is ambiguous or not connected.
 
-Buffer API integration is not yet tested against the user's credentials; a queued post does not prove that Instagram published it. Verify the first published Reel and check failures periodically.
+## Activation checklist
+- [ ] Owner sets GitHub Pages source to GitHub Actions.
+- [ ] First full **Actions** run succeeds and displays *Verified Buffer account @blinkpuzz* (check-only mode).
+- [ ] The hosted mp4 URL `https://lucadimichele-svg.github.io/blinkpuzz-automation/media/YYYY-MM-DD.mp4` loads publicly.
+- [ ] Verify that `@blinkpuzz` is the intended professional Instagram channel and automatic publishing is available.
+- [ ] Set Actions repository variable `AUTO_PUBLISH=true` to enable queuing. **This is intentionally a separate safety switch.**
+- [ ] Verify the first Reel inside Buffer's queue and then confirm it actually appears on Instagram at its scheduled time.
+- [ ] Review failures periodically. A queue entry is not proof of a published post.
 
-## Development
+## Local development
 ```bash
 sudo apt-get install ffmpeg fonts-lato fonts-dejavu-core
 python -m pip install -r requirements.txt pytest
@@ -28,4 +39,5 @@ python src/batch.py
 python src/validate.py docs/media
 ```
 
-Use only personally-owned/original assets. Scheduled GitHub jobs can be delayed or skipped; a seven-day queue helps but cannot guarantee continuous delivery.
+## Limitations
+The system is not fully live-tested. GitHub scheduled workflows can be delayed or skipped, Buffer and Instagram limits and availability may change, and the Free plan has finite queue slots. Verify runs and publication outcomes. Only original assets are used.
