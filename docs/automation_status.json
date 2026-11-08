@@ -1,0 +1,9 @@
+{
+  "checked_at_utc": "2026-11-08T23:17:34+00:00",
+  "result": "success",
+  "channel": "@blinkpuzz",
+  "buffer_connection_verified": true,
+  "queued_count_this_run": 7,
+  "publishing_enabled": true,
+  "note": "This reports Buffer scheduling only, not Instagram delivery."
+}
