@@ -49,7 +49,6 @@ jobs:
 
   deploy-media:
     needs: produce-reels
-    if: ${{ vars.ENABLE_PAGES == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -72,17 +71,12 @@ jobs:
 
   publish-queue:
     needs: deploy-media
-    if: ${{ vars.AUTO_PUBLISH == 'true' && vars.ENABLE_PAGES == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     permissions:
       contents: read
     env:
       AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH }}
-      BUFFER_ORGANIZATION_ID: ${{ vars.BUFFER_ORGANIZATION_ID }}
-      BUFFER_CHANNEL_ID: ${{ vars.BUFFER_CHANNEL_ID }}
-      EXPECTED_IG_HANDLE: ${{ vars.EXPECTED_IG_HANDLE }}
-      MEDIA_BASE_URL: ${{ vars.MEDIA_BASE_URL }}
       MAX_QUEUED_POSTS: '7'
       BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
     steps:
