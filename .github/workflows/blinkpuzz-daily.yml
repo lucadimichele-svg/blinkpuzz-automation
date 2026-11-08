@@ -1,0 +1,96 @@
+name: BlinkPuzz Daily Production
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Once daily, at 06:17 UTC. GitHub schedules may be delayed.
+    - cron: '17 6 * * *'
+
+concurrency:
+  group: blinkpuzz-daily
+  cancel-in-progress: false
+
+jobs:
+  produce-reels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install FFmpeg and fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-lato fonts-dejavu-core
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pytest
+      - name: Validate puzzle algorithms
+        run: pytest -q tests
+      - name: Render next 7 days and prune old media
+        run: python src/batch.py
+      - name: Validate output media
+        run: python src/validate.py docs/media
+      - name: Commit generated media only
+        run: |
+          git config user.name 'blinkpuzz-bot'
+          git config user.email 'blinkpuzz-bot@users.noreply.github.com'
+          git add -A docs/media
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+          else
+            git commit -m 'chore: update BlinkPuzz rolling reel buffer'
+            git push
+          fi
+
+  deploy-media:
+    needs: produce-reels
+    if: ${{ vars.ENABLE_PAGES == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+  publish-queue:
+    needs: deploy-media
+    if: ${{ vars.AUTO_PUBLISH == 'true' && vars.ENABLE_PAGES == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    env:
+      AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH }}
+      BUFFER_ORGANIZATION_ID: ${{ vars.BUFFER_ORGANIZATION_ID }}
+      BUFFER_CHANNEL_ID: ${{ vars.BUFFER_CHANNEL_ID }}
+      EXPECTED_IG_HANDLE: ${{ vars.EXPECTED_IG_HANDLE }}
+      MEDIA_BASE_URL: ${{ vars.MEDIA_BASE_URL }}
+      MAX_QUEUED_POSTS: '7'
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install API dependency
+        run: pip install "requests>=2.32,<3"
+      - name: Queue Reels only for verified BlinkPuzz Instagram account
+        run: python src/publish.py
