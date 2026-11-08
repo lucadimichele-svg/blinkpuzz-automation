@@ -1,161 +1,177 @@
 #!/usr/bin/env python3
-"""Queue BlinkPuzz Reels through Buffer only after explicit activation.
+"""Schedule original BlinkPuzz Instagram Reels via Buffer.
 
-Publication is disabled unless AUTO_PUBLISH=true and the intended Instagram
-channel is verified. The Vibsnaxx account is always blocked.
+Safety rules: never target an account other than @blinkpuzz, never publish until
+AUTO_PUBLISH=true, and never publish a clip whose URL cannot be accessed.
+Uses Buffer's public GraphQL API, and needs only BUFFER_API_KEY as a secret.
 """
 import json
 import os
 from pathlib import Path
 import sys
 import time
-from datetime import date, timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from urllib.parse import quote
+
 import requests
 
-API = 'https://api.buffer.com'
+BUFFER_ENDPOINT = "https://api.buffer.com"
+EXPECTED_HANDLE = "blinkpuzz"
+TIMEZONE = ZoneInfo("Europe/Berlin")
+MEDIA_URL = "https://lucadimichele-svg.github.io/blinkpuzz-automation/media"
+TARGET_LOCAL_HOUR = 19
+TARGET_LOCAL_MINUTE = 30
 
 
 def gql(query, token, variables=None):
-    r = requests.post(
-        API, json={'query': query, 'variables': variables or {}},
-        headers={'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'},
-        timeout=30)
-    r.raise_for_status()
-    payload = r.json()
-    if payload.get('errors'):
-        raise RuntimeError('Buffer GraphQL: ' + json.dumps(payload['errors'])[:750])
-    return payload['data']
+    response = requests.post(
+        BUFFER_ENDPOINT,
+        json={"query": query, "variables": variables or {}},
+        headers={"Authorization": "Bearer " + token, "Content-Type": "application/json"},
+        timeout=35,
+    )
+    response.raise_for_status()
+    body = response.json()
+    if body.get("errors"):
+        raise RuntimeError("Buffer query failed: " + json.dumps(body["errors"])[:600])
+    return body["data"]
 
 
-def get_posts(token, org, channel):
-    query = """query ListPosts($org: OrganizationId!, $channel: ChannelId!, $after: String) {
-      posts(first: 50, after: $after, input: { organizationId: $org,
-        filter: {channelIds: [$channel], status: [scheduled, sent, sending, error]}}) {
-        edges { node {id text status dueAt} }
-        pageInfo {hasNextPage endCursor}
+def discover_blinkpuzz(token):
+    """Read all organizations; exact-match the Instagram handle and reject ambiguity."""
+    data = gql("query { account { organizations { id name } } }", token)
+    orgs = data["account"]["organizations"]
+    matches = []
+    query = """query Channels($org: OrganizationId!) {
+      channels(input: {organizationId: $org}) {
+        id name service isLocked isDisconnected isQueuePaused
       }
     }"""
-    allposts = []
-    after = None
-    for _ in range(15):
-        data = gql(query, token, {'org': org, 'channel': channel, 'after': after})
-        result = data['posts']
-        allposts.extend(e['node'] for e in result['edges'])
-        if not result['pageInfo']['hasNextPage']:
-            return allposts
-        after = result['pageInfo']['endCursor']
-        if not after:
-            raise RuntimeError('Buffer pagination returned empty cursor')
-    raise RuntimeError('More than 750 posts returned; refusing to guess deduplication')
+    for org in orgs:
+        channels = gql(query, token, {"org": org["id"]})["channels"]
+        for channel in channels:
+            if channel["name"].strip().lower().lstrip("@") == EXPECTED_HANDLE:
+                if str(channel["service"]).lower() != "instagram":
+                    raise RuntimeError("@blinkpuzz exists but is not an Instagram channel")
+                matches.append((org["id"], channel))
+    if len(matches) != 1:
+        raise RuntimeError(
+            f"Expected exactly one Instagram channel @{EXPECTED_HANDLE}, got {len(matches)}"
+        )
+    org, channel = matches[0]
+    if channel["isLocked"] or channel["isDisconnected"] or channel["isQueuePaused"]:
+        raise RuntimeError("BlinkPuzz Buffer channel is locked, disconnected or paused")
+    return org, channel["id"]
 
 
-def check_channel(token, channel):
-    query = """query Channel($channel: ChannelId!) { channel(input: {id: $channel}) {
-      id name service isDisconnected isLocked isQueuePaused
-    }}"""
-    data = gql(query, token, {'channel': channel})['channel']
-    if not data or str(data.get('service', '')).lower() != 'instagram':
-        raise RuntimeError('Channel must be Instagram. Publishing disabled.')
-    name = str(data.get('name', '')).lower().strip('@')
-    if 'vibsnaxx' in name:
-        raise RuntimeError('Safety stop: Vibsnaxx must never be targeted by BlinkPuzz.')
-    if any(data.get(key) for key in ('isDisconnected', 'isLocked', 'isQueuePaused')):
-        raise RuntimeError('Instagram channel disconnected/locked/paused')
-    expected = os.getenv('EXPECTED_IG_HANDLE', 'blinkpuzz').lstrip('@').lower()
-    if name != expected:
-        raise RuntimeError(f'Expected Instagram channel @{expected}, got @{name}. STOP.')
-    return name
+def list_posts(token, org, channel):
+    query = """query Posts($org: OrganizationId!, $channel: ChannelId!, $cursor: String) {
+      posts(first: 100, after: $cursor, input: {
+        organizationId: $org, filter: {channelIds: [$channel]}
+      }) {
+        edges { node { id text status dueAt } }
+        pageInfo { hasNextPage endCursor }
+      }
+    }"""
+    posts, cursor = [], None
+    for _ in range(10):
+        data = gql(query, token, {"org": org, "channel": channel, "cursor": cursor})["posts"]
+        posts += [edge["node"] for edge in data["edges"]]
+        if not data["pageInfo"]["hasNextPage"]:
+            return posts
+        cursor = data["pageInfo"]["endCursor"]
+        if not cursor:
+            raise RuntimeError("Pagination failed: missing cursor")
+    raise RuntimeError("More than 1000 channel posts; refusing to risk duplicate publication")
 
 
-def check_public_media(url, tries=1):
-    for attempt in range(tries):
+def media_ready(url):
+    for i in range(12):
         try:
-            r = requests.get(url, headers={'Range': 'bytes=0-2047'},
-                             stream=True, timeout=16, allow_redirects=True)
-            if r.status_code in (200, 206) and 'text/html' not in r.headers.get('Content-Type', '').lower():
-                r.close()
+            resp = requests.get(url, stream=True, timeout=20, headers={"Range": "bytes=0-1023"})
+            status = resp.status_code
+            mime = resp.headers.get("Content-Type", "").lower()
+            resp.close()
+            if status in (200, 206) and ("video/" in mime or "octet-stream" in mime):
                 return True
-            r.close()
         except requests.RequestException:
             pass
-        if attempt+1 < tries:
-            time.sleep(12)
+        if i < 11:
+            time.sleep(10)
     return False
 
 
-def queue(token, channel, caption, url):
+def add_post(token, channel, caption, media, when):
     mutation = """mutation CreatePost($input: CreatePostInput!) {
       createPost(input: $input) {
-        ... on PostActionSuccess { post { id dueAt status } }
+        ... on PostActionSuccess { post { id status dueAt } }
         ... on MutationError { message }
       }
     }"""
-    data = gql(mutation, token, {'input': {
-        'text': caption,
-        'channelId': channel,
-        'schedulingType': 'automatic',
-        'mode': 'addToQueue',
-        'metadata': {'instagram': {'type': 'reel', 'shouldShareToFeed': True}},
-        'assets': [{'video': {'url': url, 'metadata': {'thumbnailOffset': 1000}}}]
-    }})['createPost']
-    if 'post' not in data:
-        raise RuntimeError(f'Buffer rejected post: {data.get("message", data)}')
-    return data['post']
+    data = gql(mutation, token, {"input": {
+        "channelId": channel,
+        "text": caption,
+        "schedulingType": "automatic",
+        "mode": "customScheduled",
+        "dueAt": when,
+        "metadata": {"instagram": {"type": "reel", "shouldShareToFeed": True}},
+        "assets": [{"video": {"url": media, "metadata": {"thumbnailOffset": 2000}}}],
+    }})["createPost"]
+    if not data.get("post"):
+        raise RuntimeError("Buffer refused scheduling: " + str(data.get("message", data)))
+    return data["post"]
 
 
 def main():
-    if os.getenv('AUTO_PUBLISH', '').lower() != 'true':
-        print('Publishing disabled (AUTO_PUBLISH not true). Safe exit.')
-        return 0
-    token = os.getenv('BUFFER_API_KEY', '')
-    org = os.getenv('BUFFER_ORGANIZATION_ID', '')
-    channel = os.getenv('BUFFER_CHANNEL_ID', '')
-    base = os.getenv('MEDIA_BASE_URL', '').rstrip('/')
-    if not all((token, org, channel, base)):
-        print('Publishing gated: missing Buffer credentials or MEDIA_BASE_URL.', file=sys.stderr)
+    token = os.getenv("BUFFER_API_KEY", "")
+    if not token:
+        print("BUFFER_API_KEY secret not set", file=sys.stderr)
         return 1
-    if not base.startswith('https://'):
-        raise ValueError('MEDIA_BASE_URL must use HTTPS')
-    name = check_channel(token, channel)
-    posts = get_posts(token, org, channel)
-    scheduled = [p for p in posts if p['status'] in ('scheduled', 'sending')]
-    errors = [p for p in posts if p['status'] == 'error' and 'Challenge ID: BP' in p['text']]
-    if errors:
-        print(f'WARNING: {len(errors)} failed BlinkPuzz posts require inspection', file=sys.stderr)
-        return 2
-    known = set()
-    for p in posts:
-        for line in p['text'].splitlines():
-            if line.startswith('Challenge ID: '):
-                known.add(line.split(': ', 1)[1])
-    max_queue = int(os.getenv('MAX_QUEUED_POSTS', '7'))
-    slots = max(0, min(10, max_queue) - len(scheduled))
-    if slots == 0:
-        print(f'@{name}: queue full ({len(scheduled)} posts).')
+    org, channel = discover_blinkpuzz(token)
+    print(f"Verified Buffer account @{EXPECTED_HANDLE}; no other channels will be used.")
+    if os.getenv("AUTO_PUBLISH", "").lower() != "true":
+        print("CHECK ONLY: Auto-publishing disabled. No new posts created.")
         return 0
-    today = date.today()
-    files = sorted(Path('docs/media').glob('*.json'))
-    count = 0
-    for path in files:
-        data = json.loads(path.read_text(encoding='utf8'))
-        day = date.fromisoformat(data['date'])
-        if day < today-timedelta(days=2) or day > today+timedelta(days=12):
+
+    posts = list_posts(token, org, channel)
+    markers = set()
+    for post in posts:
+        for line in (post["text"] or "").splitlines():
+            if line.startswith("Challenge ID: "):
+                markers.add(line.split(": ", 1)[1].strip())
+    failed = [post for post in posts if str(post["status"]).lower() in ("error", "failed")
+              and "Challenge ID: BP" in (post["text"] or "")]
+    if failed:
+        raise RuntimeError(f"{len(failed)} failed BlinkPuzz posts must be investigated")
+
+    active = sum(str(post["status"]).lower() in ("buffer", "scheduled", "sending")
+                 for post in posts)
+    room = max(0, 7 - active)
+    now = datetime.now(TIMEZONE)
+    added = 0
+    for manifest in sorted(Path("docs/media").glob("*.json")):
+        meta = json.loads(manifest.read_text(encoding="utf-8"))
+        day = datetime.fromisoformat(meta["date"]).date()
+        local = datetime(day.year, day.month, day.day,
+                         TARGET_LOCAL_HOUR, TARGET_LOCAL_MINUTE, tzinfo=TIMEZONE)
+        if not now < local <= now + timedelta(days=10):
             continue
-        marker = 'BP'+data['date'].replace('-', '')
-        if marker in known:
+        marker = "BP" + meta["date"].replace("-", "")
+        if marker in markers:
             continue
-        url = base+'/'+quote(data['video'])
-        if not check_public_media(url, tries=10):
-            raise RuntimeError('Hosted media not reachable yet: '+url)
-        response = queue(token, channel, data['caption'], url)
-        print(f'Queued {marker}: {response["id"]} for {response.get("dueAt")}')
-        count += 1
-        if count >= slots:
+        if added >= room:
             break
-    print(f'@{name}: {count} new posts queued; {len(scheduled)+count}/{max_queue} occupied.')
+        url = MEDIA_URL + "/" + quote(meta["video"])
+        if not media_ready(url):
+            raise RuntimeError("Hosted video not publicly accessible: " + url)
+        published = add_post(token, channel, meta["caption"], url,
+                             local.astimezone(ZoneInfo("UTC")).isoformat().replace("+00:00", "Z"))
+        print(f"Scheduled {marker} for {local.isoformat()}: Buffer post {published['id']}")
+        added += 1
+    print(f"Scheduled {added} new posts; {active + added}/7 queue slots occupied.")
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
