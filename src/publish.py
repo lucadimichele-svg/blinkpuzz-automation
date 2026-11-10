@@ -173,7 +173,10 @@ def main():
         print(f"BlinkPuzz queue full: {active}/{MAX_FREE_QUEUED}. No posts added.")
         return 0
 
-    candidates = []
+    # Old and upgraded manifests may coexist safely. Select only one item
+    # per challenge ID and prefer the v3 design when a slot is not yet queued.
+    # Previously queued Buffer posts are left intact (marker/time checks above).
+    preferred = {}
     for manifest in sorted(Path("docs/media").glob("*.json")):
         meta = json.loads(manifest.read_text(encoding="utf-8"))
         day = datetime.fromisoformat(meta["date"]).date()
@@ -187,7 +190,12 @@ def main():
         marker = challenge_id(day, slot)
         if marker in markers or local.isoformat() in scheduled_times:
             continue
-        candidates.append((local, marker, meta))
+        rank = 1 if meta.get("creative_version") == "v3" else 0
+        old = preferred.get(marker)
+        if old is None or rank > old[0]:
+            preferred[marker] = (rank, local, marker, meta)
+    candidates = [(local, marker, meta)
+                  for rank, local, marker, meta in preferred.values()]
     candidates.sort(key=lambda x: (x[0], x[1]))
 
     added = 0
