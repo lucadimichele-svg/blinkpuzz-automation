@@ -48,13 +48,16 @@ def symbol_font(size: int):
     return ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", size)
 
 
-def seed_for(day: str):
-    return int.from_bytes(hashlib.sha256(("blinkpuzz-v2:" + day).encode()).digest()[:8], "big")
+def seed_for(day: str, variant: str = ""):
+    key = "blinkpuzz-v2:" + day + (("|" + variant) if variant else "")
+    return int.from_bytes(hashlib.sha256(key.encode()).digest()[:8], "big")
 
 
-def build_puzzle(day: str):
-    rd = random.Random(seed_for(day))
-    kind = (date.fromisoformat(day).toordinal()) % 5
+def build_puzzle(day: str, variant: str = ""):
+    rd = random.Random(seed_for(day, variant))
+    # Rotate challenge formats so four posts per day do not repeat one category.
+    offset = {"B1": 1, "B2": 3, "B3": 4, "N1": 2}.get(variant, 0)
+    kind = (date.fromisoformat(day).toordinal() + offset) % 5
     if kind in (0, 1, 2):
         rows, cols = 7, 7
         ix = rd.randrange(2, rows * cols - 2)
@@ -216,13 +219,16 @@ def audio_file(path: Path, seconds=8):
         w.writeframes(block)
 
 
-def make_reel(day: str, output_dir: Path, quick=False):
+def make_reel(day: str, output_dir: Path, quick=False, variant: str = ""):
     date.fromisoformat(day)
-    puzzle = build_puzzle(day)
+    if variant not in ("", "B1", "B2", "B3", "N1"):
+        raise ValueError(f"Unsupported BlinkPuzz Reel variant: {variant}")
+    puzzle = build_puzzle(day, variant)
     output_dir.mkdir(parents=True, exist_ok=True)
-    dest = output_dir / f'{day}.mp4'
-    poster = output_dir / f'{day}.jpg'
-    metadata = output_dir / f'{day}.json'
+    stem = day + ("-" + variant if variant else "")
+    dest = output_dir / f'{stem}.mp4'
+    poster = output_dir / f'{stem}.jpg'
+    metadata = output_dir / f'{stem}.json'
     bg = gradient()
     frame(bg, puzzle, 6, False).save(poster, quality=91, optimize=True)
     with tempfile.TemporaryDirectory(prefix='blinkpuzz-') as tmp:
@@ -248,11 +254,12 @@ def make_reel(day: str, output_dir: Path, quick=False):
         subprocess.run(command, check=True)
     caption = (f"{puzzle['title']} 👀\n\n"
                f"Can you solve this before the timer runs out? Drop your answer below! 🧠\n\n"
-               f"Follow @blinkpuzz for a fresh daily challenge.\n\n"
+               f"Follow @blinkpuzz for more quick brain challenges.\n\n"
                f"#BrainTeaser #PuzzleChallenge #DailyPuzzle #MindGames #BlinkPuzz\n\n"
-               f"Challenge ID: BP{day.replace('-', '')}")
+               f"Challenge ID: BP{day.replace('-', '')}{variant}")
     info = {
-        "id": f"blinkpuzz-{day}", "date": day, "type": puzzle['kind'],
+        "id": f"blinkpuzz-{stem}", "date": day, "slot": variant if variant else "base",
+        "type": puzzle['kind'],
         "title": puzzle['title'], "answer": puzzle['answer'], "solution": puzzle['detail'],
         "caption": caption, "video": dest.name, "poster": poster.name,
         "duration_seconds": 8, "width": 540 if quick else W, "height": 960 if quick else H,
@@ -267,8 +274,9 @@ def main():
     parser.add_argument('--date', default=date.today().isoformat(), help='YYYY-MM-DD')
     parser.add_argument('--out', type=Path, default=Path('docs/media'))
     parser.add_argument('--quick', action='store_true', help='Half-resolution smoke-test mode')
+    parser.add_argument('--variant', default='', choices=('', 'B1', 'B2', 'B3', 'N1'))
     args=parser.parse_args()
-    data=make_reel(args.date, args.out, args.quick)
+    data=make_reel(args.date, args.out, args.quick, args.variant)
     print(json.dumps(data, ensure_ascii=False))
 
 
