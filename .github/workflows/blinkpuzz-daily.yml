@@ -15,7 +15,7 @@ concurrency:
 jobs:
   produce-reels:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 35
     permissions:
       contents: write
     steps:
@@ -31,7 +31,7 @@ jobs:
           pip install -r requirements.txt pytest
       - name: Validate puzzle algorithms
         run: pytest -q tests
-      - name: Render next 7 days and prune old media
+      - name: Render 7-day inventory for Option B and prune old media
         run: python src/batch.py
       - name: Validate output media
         run: python src/validate.py docs/media
@@ -71,6 +71,9 @@ jobs:
 
   publish-queue:
     needs: deploy-media
+    concurrency:
+      group: blinkpuzz-buffer-queue
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 12
     permissions:
@@ -113,7 +116,7 @@ jobs:
             'result': os.environ.get('QUEUE_OUTCOME','unknown'),
             'channel': '@blinkpuzz',
             'buffer_connection_verified': 'Verified Buffer account @blinkpuzz' in log,
-            'queued_count_this_run': len(re.findall(r'^Scheduled BP[0-9]{8} ',log,re.M)),
+            'queued_count_this_run': len(re.findall(r'^Scheduled BP[0-9]{8}(?:B[123]|N1)? ',log,re.M)),
             'publishing_enabled': os.getenv('AUTO_PUBLISH','').lower()=='true',
             'note': 'This reports Buffer scheduling only, not Instagram delivery.'
           }
