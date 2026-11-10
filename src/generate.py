@@ -220,9 +220,14 @@ def audio_file(path: Path, seconds=8):
 
 
 def make_reel(day: str, output_dir: Path, quick=False, variant: str = ""):
-    date.fromisoformat(day)
+    valid_day = date.fromisoformat(day)
     if variant not in ("", "B1", "B2", "B3", "N1"):
         raise ValueError(f"Unsupported BlinkPuzz Reel variant: {variant}")
+    # Preserve existing and potentially already-queued clips unchanged.
+    # All ungenerated clips from 17 Nov onwards use the new creative system.
+    if valid_day >= date(2026, 11, 17):
+        from creative_v3 import make_reel as improved_make_reel
+        return improved_make_reel(day, output_dir, quick, variant)
     puzzle = build_puzzle(day, variant)
     output_dir.mkdir(parents=True, exist_ok=True)
     stem = day + ("-" + variant if variant else "")
