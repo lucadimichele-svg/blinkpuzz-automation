@@ -15,13 +15,13 @@ from zoneinfo import ZoneInfo
 from urllib.parse import quote
 
 import requests
+from schedule import challenge_id, planned_at, slots_for
 
 BUFFER_ENDPOINT = "https://api.buffer.com"
 EXPECTED_HANDLE = "blinkpuzz"
 TIMEZONE = ZoneInfo("Europe/Berlin")
 MEDIA_URL = "https://lucadimichele-svg.github.io/blinkpuzz-automation/media"
-TARGET_LOCAL_HOUR = 19
-TARGET_LOCAL_MINUTE = 30
+MAX_FREE_QUEUED = 10  # Buffer Free: up to ten posts queued per channel.
 
 
 def gql(query, token, variables=None):
@@ -143,33 +143,68 @@ def main():
     failed = [post for post in posts if str(post["status"]).lower() in ("error", "failed")
               and "Challenge ID: BP" in (post["text"] or "")]
     if failed:
-        raise RuntimeError(f"{len(failed)} failed BlinkPuzz posts must be investigated")
+        # A past failure must not block all future uploads.
+        print(f"WARNING: {len(failed)} failed BlinkPuzz posts need investigation.", file=sys.stderr)
 
-    active = sum(str(post["status"]).lower() in ("buffer", "scheduled", "sending")
-                 for post in posts)
-    room = max(0, 7 - active)
+    # Buffer Free allows ten currently scheduled posts per Instagram channel.
+    # Include all non-final due posts to avoid overflow if an unknown status
+    # is reported by a newer Buffer API version.
     now = datetime.now(TIMEZONE)
-    added = 0
+    ended = {"sent", "error", "failed", "draft"}
+    active = 0
+    scheduled_times = set()
+    for post in posts:
+        status = str(post.get("status", "")).lower()
+        due = post.get("dueAt")
+        if status in ended or not due:
+            continue
+        try:
+            dt = datetime.fromisoformat(due.replace("Z", "+00:00")).astimezone(TIMEZONE)
+        except ValueError:
+            # Err on the safe side when a new API format is unknown.
+            active += 1
+            continue
+        if dt >= now:
+            active += 1
+            scheduled_times.add(dt.isoformat())
+
+    room = max(0, MAX_FREE_QUEUED - active)
+    if room == 0:
+        print(f"BlinkPuzz queue full: {active}/{MAX_FREE_QUEUED}. No posts added.")
+        return 0
+
+    candidates = []
     for manifest in sorted(Path("docs/media").glob("*.json")):
         meta = json.loads(manifest.read_text(encoding="utf-8"))
         day = datetime.fromisoformat(meta["date"]).date()
-        local = datetime(day.year, day.month, day.day,
-                         TARGET_LOCAL_HOUR, TARGET_LOCAL_MINUTE, tzinfo=TIMEZONE)
-        if not now < local <= now + timedelta(days=10):
+        slot = meta.get("slot", "base")
+        spec = dict(slots_for(day))
+        if slot not in spec:
             continue
-        marker = "BP" + meta["date"].replace("-", "")
-        if marker in markers:
+        local = planned_at(day, spec[slot])
+        if not now + timedelta(minutes=5) < local <= now + timedelta(days=9):
             continue
+        marker = challenge_id(day, slot)
+        if marker in markers or local.isoformat() in scheduled_times:
+            continue
+        candidates.append((local, marker, meta))
+    candidates.sort(key=lambda x: (x[0], x[1]))
+
+    added = 0
+    for local, marker, meta in candidates:
         if added >= room:
             break
         url = MEDIA_URL + "/" + quote(meta["video"])
         if not media_ready(url):
             raise RuntimeError("Hosted video not publicly accessible: " + url)
-        published = add_post(token, channel, meta["caption"], url,
-                             local.astimezone(ZoneInfo("UTC")).isoformat().replace("+00:00", "Z"))
-        print(f"Scheduled {marker} for {local.isoformat()}: Buffer post {published['id']}")
+        scheduled = add_post(
+            token, channel, meta["caption"], url,
+            local.astimezone(ZoneInfo("UTC")).isoformat().replace("+00:00", "Z")
+        )
+        print(f"Scheduled {marker} for {local.isoformat()}: Buffer post {scheduled['id']}")
+        scheduled_times.add(local.isoformat())
         added += 1
-    print(f"Scheduled {added} new posts; {active + added}/7 queue slots occupied.")
+    print(f"Scheduled {added} new posts; {active + added}/{MAX_FREE_QUEUED} queue slots occupied.")
     return 0
 
 
