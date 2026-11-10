@@ -10,6 +10,20 @@ The Vibsnaxx project is separate and never targeted.
 - Buffer API key: stored in **Actions secret `BUFFER_API_KEY`** by the owner. Do not paste secrets into chat or source files.
 - Instagram publishing: **OFF** until `AUTO_PUBLISH=true` repository **variable** is explicitly set *after* testing. No live posts confirmed.
 
+
+## Creative V3 — more engaging variety (10 November update)
+
+The previous Reels all looked similar. The generator now supports eight original challenge families with distinct color palettes, bold first-frame hooks and high-contrast mobile-readable layouts:
+- Odd symbol, missing number, number sequence, order-of-operations, symbol equations, A/B comparison, memory flash and single-correct-door logic.
+- All answers checked deterministically by dedicated tests (including 365 days × 5 variants).
+- Each Reel keeps the same original-audio 8-second vertical H.264/AAC format.
+- Creative metadata records `creative_version: "v3"` and the challenge family for future analysis.
+
+**Rollout is non-destructive.** Previously queued media cannot safely be swapped.
+- For November 11–16, `creative_inventory.py` prepares separately named `-V3` alternatives for not-yet-published time slots; the Buffer publisher selects a V3 alternative only if the matching original challenge has **not** already been queued.
+- From November 17, all newly generated clips use V3 by default.
+- Existing Instagram posts, Buffer queue entries, challenge IDs and file URLs are never silently changed. Better creative quality is a testable hypothesis, not a guarantee of increased reach.
+
 ## Automatic workflow
 1. Check that generated puzzles have unique and valid answers.
 2. Make the next 7 days of 1080x1920, 8-second Reels.
