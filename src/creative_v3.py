@@ -332,11 +332,13 @@ def synth_audio(path):
         w.writeframes(out)
 
 
-def make_reel(day, output_dir, quick=False, variant=''):
+def make_reel(day, output_dir, quick=False, variant='', asset_label=''):
+    if asset_label and (not asset_label.isalnum() or len(asset_label)>8):
+        raise ValueError('Invalid asset label')
     p=build_puzzle(day,variant)
     output_dir=Path(output_dir)
     output_dir.mkdir(parents=True,exist_ok=True)
-    stem=day+('-'+variant if variant else '')
+    stem=day+('-'+variant if variant else '')+('-'+asset_label if asset_label else '')
     mp4=output_dir/(stem+'.mp4')
     cover=output_dir/(stem+'.jpg')
     manifest=output_dir/(stem+'.json')
