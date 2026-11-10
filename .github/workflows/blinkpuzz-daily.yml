@@ -33,6 +33,8 @@ jobs:
         run: pytest -q tests
       - name: Render 7-day inventory for Option B and prune old media
         run: python src/batch.py
+      - name: Generate improved variants without altering queued assets
+        run: python src/creative_inventory.py
       - name: Validate output media
         run: python src/validate.py docs/media
       - name: Commit generated media only
