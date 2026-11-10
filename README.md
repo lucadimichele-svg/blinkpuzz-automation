@@ -5,7 +5,7 @@ The Vibsnaxx project is separate and never targeted.
 
 ## Status
 - Original English vertical puzzle Reel generator: installed.
-- GitHub Actions: configured for a rolling 7-day video buffer (06:17 UTC daily, also push/manual).
+- GitHub Actions: daily rolling seven-day generation buffer, plus separate automated Buffer queue refills throughout each day.
 - GitHub Pages: choose **Settings → Pages → Source: GitHub Actions** to activate hosting. This step needs a one-time owner action.
 - Buffer API key: stored in **Actions secret `BUFFER_API_KEY`** by the owner. Do not paste secrets into chat or source files.
 - Instagram publishing: **OFF** until `AUTO_PUBLISH=true` repository **variable** is explicitly set *after* testing. No live posts confirmed.
@@ -17,7 +17,14 @@ The Vibsnaxx project is separate and never targeted.
 4. Commit the generated MP4/JPEG/JSON under `docs/media/`.
 5. Deploy `docs/` on GitHub Pages after Pages is enabled.
 6. Verify the Buffer API connection for the **exact** Instagram channel `@blinkpuzz`. This step schedules nothing until `AUTO_PUBLISH` is set to `true`.
-7. Only when unlocked: schedule eligible clips for **19:30 Europe/Berlin**. Reject any other account/channel. Reject duplicate challenge markers.
+7. After explicit publishing activation, schedule only **@blinkpuzz** and reject duplicate challenge markers.
+
+## Publishing cadence — Option B
+- **November 10–16, 2026:** four Reels per day. November 10 at 16:30, 18:00, 19:30 and 21:30; subsequent boost days at 10:00, 14:00, 19:30 and 21:30 (Europe/Berlin).
+- **From November 17, 2026 onward:** two Reels per day, at 12:00 and 19:30.
+- The original one-per-day Reel remains the 19:30 slot. Existing scheduled posts are kept. Each additional Reel has its own stable date-and-slot ID.
+- **Buffer Free:** only ten posts can be in its queue at a time. The light-weight GitHub Actions workflow `blinkpuzz-refill.yml` refills freed slots automatically; it cannot publish posts retroactively or guarantee successful Instagram delivery.
+- Refill uses a single publishing owner; production, queueing, and status jobs run separately with shared queue concurrency to avoid double publishing.
 
 No manual organization or channel IDs are required: the publisher discovers the exact @blinkpuzz Instagram channel via Buffer API and fails closed if it is ambiguous or not connected.
 
