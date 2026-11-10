@@ -1,9 +1,9 @@
 {
-  "checked_at_utc": "2026-11-10T20:00:45+00:00",
+  "checked_at_utc": "2026-11-10T21:51:08+00:00",
   "result": "success",
   "channel": "@blinkpuzz",
   "buffer_connection_verified": true,
-  "queued_count_this_run": 3,
+  "queued_count_this_run": 1,
   "publishing_enabled": true,
   "target_cadence": "4 daily through 2026-11-16, then 2 daily",
   "note": "This reports Buffer queueing only, not actual Instagram delivery."
