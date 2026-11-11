@@ -1,0 +1,130 @@
+{
+  "experiment_id": "BP-2026-11-ABCD",
+  "start_date": "2026-11-15",
+  "end_date": "2026-11-18",
+  "timezone": "Europe/Berlin",
+  "design": "4 arms x 3 Reels each; 12s every Reel; each arm contains sequence, math, logic once",
+  "primary_metrics": [
+    "comments_per_100_views",
+    "average_watch_seconds"
+  ],
+  "secondary_metrics": [
+    "views_48h",
+    "likes_per_100_views",
+    "shares_per_100_views",
+    "follows_48h"
+  ],
+  "note": "Exploratory only: n=3/arm, not statistically conclusive. Buffer queue status is not Instagram performance.",
+  "arms": {
+    "A": {
+      "difficulty": "easy",
+      "in_video_reveal": true,
+      "choices": false,
+      "label": "Easy + reveal"
+    },
+    "B": {
+      "difficulty": "medium",
+      "in_video_reveal": true,
+      "choices": false,
+      "label": "Medium + reveal"
+    },
+    "C": {
+      "difficulty": "medium",
+      "in_video_reveal": false,
+      "choices": false,
+      "label": "Medium + caption spoiler"
+    },
+    "D": {
+      "difficulty": "medium",
+      "in_video_reveal": false,
+      "choices": true,
+      "label": "Medium + options + caption spoiler"
+    }
+  },
+  "slots": [
+    {
+      "date": "2026-11-15",
+      "slot": "B1",
+      "arm": "A",
+      "type": "sequence",
+      "challenge_id": "BP20261115B1"
+    },
+    {
+      "date": "2026-11-15",
+      "slot": "B2",
+      "arm": "B",
+      "type": "math",
+      "challenge_id": "BP20261115B2"
+    },
+    {
+      "date": "2026-11-15",
+      "slot": "base",
+      "arm": "C",
+      "type": "logic",
+      "challenge_id": "BP20261115"
+    },
+    {
+      "date": "2026-11-15",
+      "slot": "B3",
+      "arm": "D",
+      "type": "sequence",
+      "challenge_id": "BP20261115B3"
+    },
+    {
+      "date": "2026-11-16",
+      "slot": "B1",
+      "arm": "D",
+      "type": "math",
+      "challenge_id": "BP20261116B1"
+    },
+    {
+      "date": "2026-11-16",
+      "slot": "B2",
+      "arm": "C",
+      "type": "sequence",
+      "challenge_id": "BP20261116B2"
+    },
+    {
+      "date": "2026-11-16",
+      "slot": "base",
+      "arm": "B",
+      "type": "logic",
+      "challenge_id": "BP20261116"
+    },
+    {
+      "date": "2026-11-16",
+      "slot": "B3",
+      "arm": "A",
+      "type": "math",
+      "challenge_id": "BP20261116B3"
+    },
+    {
+      "date": "2026-11-17",
+      "slot": "N1",
+      "arm": "B",
+      "type": "sequence",
+      "challenge_id": "BP20261117N1"
+    },
+    {
+      "date": "2026-11-17",
+      "slot": "base",
+      "arm": "D",
+      "type": "logic",
+      "challenge_id": "BP20261117"
+    },
+    {
+      "date": "2026-11-18",
+      "slot": "N1",
+      "arm": "A",
+      "type": "logic",
+      "challenge_id": "BP20261118N1"
+    },
+    {
+      "date": "2026-11-18",
+      "slot": "base",
+      "arm": "C",
+      "type": "math",
+      "challenge_id": "BP20261118"
+    }
+  ]
+}
