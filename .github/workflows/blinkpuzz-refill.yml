@@ -35,6 +35,10 @@ jobs:
         run: |
           set -o pipefail
           python src/publish.py 2>&1 | tee /tmp/blinkpuzz-refill.log
+      - name: Audit upcoming experiment posts (read-only)
+        if: always()
+        continue-on-error: true
+        run: python src/experiment_report.py
       - name: Save the non-secret refill status
         if: always()
         shell: bash
@@ -65,6 +69,7 @@ jobs:
           git config user.name 'blinkpuzz-bot'
           git config user.email 'blinkpuzz-bot@users.noreply.github.com'
           git add docs/automation_status.json
+          if [ -f docs/experiment_status.json ]; then git add docs/experiment_status.json; fi
           if ! git diff --cached --quiet; then
             git commit -m 'chore: report BlinkPuzz queue refill'
             git pull --rebase origin main
