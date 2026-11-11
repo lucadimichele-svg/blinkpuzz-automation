@@ -27,7 +27,7 @@ def validate(folder):
         assert (v['width'],v['height'])==(1080,1920),video
         assert v['codec_name']=='h264'
         assert any(s['codec_type']=='audio' and s['codec_name']=='aac' for s in streams)
-        assert abs(float(p['format']['duration'])-8)<0.15
+        assert abs(float(p['format']['duration'])-float(data.get('duration_seconds',8)))<0.15
         print(f"PASS {data['date']} ({data['type']}, answer={data['answer']})")
     return len(paths)
 
