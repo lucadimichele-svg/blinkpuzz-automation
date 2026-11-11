@@ -12,7 +12,9 @@ on:
 
 concurrency:
   group: blinkpuzz-daily
-  cancel-in-progress: false
+  # Use the latest code revision; repeated setup commits must not queue
+  # multiple expensive full media-rendering runs.
+  cancel-in-progress: true
 
 jobs:
   produce-reels:
