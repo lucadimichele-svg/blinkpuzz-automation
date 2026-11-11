@@ -174,7 +174,7 @@ def main():
         return 0
 
     # Old and upgraded manifests may coexist safely. Select only one item
-    # per challenge ID and prefer the v3 design when a slot is not yet queued.
+    # per challenge ID: experiment > v3 > old; never modify queued posts.
     # Previously queued Buffer posts are left intact (marker/time checks above).
     preferred = {}
     for manifest in sorted(Path("docs/media").glob("*.json")):
@@ -190,7 +190,8 @@ def main():
         marker = challenge_id(day, slot)
         if marker in markers or local.isoformat() in scheduled_times:
             continue
-        rank = 1 if meta.get("creative_version") == "v3" else 0
+        rank = (2 if meta.get("experiment_id") == "BP-2026-11-ABCD"
+                else 1 if meta.get("creative_version") == "v3" else 0)
         old = preferred.get(marker)
         if old is None or rank > old[0]:
             preferred[marker] = (rank, local, marker, meta)
