@@ -1,0 +1,13 @@
+date,slot,arm,family,views_48h,avg_watch_seconds,comments_48h,likes_48h,shares_48h,follows_48h,measured_at_berlin
+2026-11-15,B1,A,sequence,,,,,,,
+2026-11-15,B2,B,math,,,,,,,
+2026-11-15,base,C,logic,,,,,,,
+2026-11-15,B3,D,sequence,,,,,,,
+2026-11-16,B1,D,math,,,,,,,
+2026-11-16,B2,C,sequence,,,,,,,
+2026-11-16,base,B,logic,,,,,,,
+2026-11-16,B3,A,math,,,,,,,
+2026-11-17,N1,B,sequence,,,,,,,
+2026-11-17,base,D,logic,,,,,,,
+2026-11-18,N1,A,logic,,,,,,,
+2026-11-18,base,C,math,,,,,,,
