@@ -11,6 +11,23 @@ The Vibsnaxx project is separate and never targeted.
 - Instagram publishing: **OFF** until `AUTO_PUBLISH=true` repository **variable** is explicitly set *after* testing. No live posts confirmed.
 
 
+## Four-arm audience experiment (15–18 November 2026)
+
+**Goal:** distinguish whether modest difficulty, withholding the in-video reveal, or plausible answer choices improve meaningful interactions without sacrificing watch time.
+
+- **A:** easy puzzle + in-video reveal (3 Reels)
+- **B:** medium puzzle + in-video reveal (3 Reels)
+- **C:** medium puzzle + no in-video reveal (3 Reels; full spoiler solution in caption)
+- **D:** medium puzzle + three plausible options + no in-video reveal (3 Reels; spoiler solution in caption)
+
+All 12 experimental Reels are 12 seconds long, with the same visual layout and original audio. Each arm includes exactly one sequence, one arithmetic puzzle, and one logic puzzle. The 12 time slots are fixed in `docs/experiment_plan.json`, using the **existing** schedule (four per day until 16 Nov; two per day afterward). Only the exact planned slots are treated, and new media have a separate `-EXP` suffix.
+
+**Queue safety:** The publisher prefers `-EXP` over `-V3` over legacy media **only for a slot not already present in Buffer**. All prior posts and files are preserved. No separate extra daily posts are created. `src/experiment_report.py` writes a limited read-only Buffer queue audit to `docs/experiment_status.json`; this never proves actual Instagram delivery.
+
+**Measurement:** At least 48 hours after each Reel appears on Instagram, record actual Instagram Insights at a consistent post age in `docs/experiment_results_template.csv` and run `python src/analyze_experiment.py`. Primary outcomes: comments per hundred views and average watch time; secondary: views, likes, shares, follows. No Instagram analytics credentials are connected for this account, so these must be supplied from Insights. Do not infer a winner from only a few Reels or from Buffer scheduling status.
+
+Pinned comments are **not** currently automated via this Buffer setup; C/D use an opt-in caption spoiler instead. This is an explicit approximation, not a test of pinned comments.
+
 ## Creative V3 — more engaging variety (10 November update)
 
 The previous Reels all looked similar. The generator now supports eight original challenge families with distinct color palettes, bold first-frame hooks and high-contrast mobile-readable layouts:
