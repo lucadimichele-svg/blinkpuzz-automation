@@ -9,9 +9,14 @@ import os
 from datetime import datetime,timezone
 from pathlib import Path
 
-from experiment import TEST, ARMS
+# Keep this audit lightweight: the queue-refill workflow installs requests,
+# not Pillow. Read the static experiment plan instead of importing the
+# video rendering module (which depends on Pillow).
 from publish import discover_blinkpuzz, list_posts
 from schedule import challenge_id
+
+PLAN = json.loads(Path('docs/experiment_plan.json').read_text(encoding='utf-8'))
+TEST = [(r['date'], r['slot'], r['arm'], r['type']) for r in PLAN['slots']]
 
 
 def summarize(posts):
