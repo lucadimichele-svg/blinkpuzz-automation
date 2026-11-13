@@ -1,7 +1,7 @@
 {
   "experiment_id": "BP-2026-11-ABCD",
   "start_date": "2026-11-15",
-  "end_date": "2026-11-18",
+  "end_date": "2026-11-20",
   "timezone": "Europe/Berlin",
   "design": "4 arms x 3 Reels each; 12s every Reel; each arm contains sequence, math, logic once",
   "primary_metrics": [
@@ -14,7 +14,7 @@
     "shares_per_100_views",
     "follows_48h"
   ],
-  "note": "Exploratory only: n=3/arm, not statistically conclusive. Buffer queue status is not Instagram performance.",
+  "note": "Exploratory only: n=3/arm, not statistically conclusive. 15 Nov base and 16 Nov base were pre-queued with legacy content and deliberately excluded; replacement slots 19/20 Nov 12:00. Buffer queue status is not Instagram performance.",
   "arms": {
     "A": {
       "difficulty": "easy",
@@ -58,13 +58,6 @@
     },
     {
       "date": "2026-11-15",
-      "slot": "base",
-      "arm": "C",
-      "type": "logic",
-      "challenge_id": "BP20261115"
-    },
-    {
-      "date": "2026-11-15",
       "slot": "B3",
       "arm": "D",
       "type": "sequence",
@@ -86,24 +79,10 @@
     },
     {
       "date": "2026-11-16",
-      "slot": "base",
-      "arm": "B",
-      "type": "logic",
-      "challenge_id": "BP20261116"
-    },
-    {
-      "date": "2026-11-16",
       "slot": "B3",
       "arm": "A",
       "type": "math",
       "challenge_id": "BP20261116B3"
-    },
-    {
-      "date": "2026-11-17",
-      "slot": "N1",
-      "arm": "B",
-      "type": "sequence",
-      "challenge_id": "BP20261117N1"
     },
     {
       "date": "2026-11-17",
@@ -113,11 +92,11 @@
       "challenge_id": "BP20261117"
     },
     {
-      "date": "2026-11-18",
+      "date": "2026-11-17",
       "slot": "N1",
-      "arm": "A",
-      "type": "logic",
-      "challenge_id": "BP20261118N1"
+      "arm": "B",
+      "type": "sequence",
+      "challenge_id": "BP20261117N1"
     },
     {
       "date": "2026-11-18",
@@ -125,6 +104,27 @@
       "arm": "C",
       "type": "math",
       "challenge_id": "BP20261118"
+    },
+    {
+      "date": "2026-11-18",
+      "slot": "N1",
+      "arm": "A",
+      "type": "logic",
+      "challenge_id": "BP20261118N1"
+    },
+    {
+      "date": "2026-11-19",
+      "slot": "N1",
+      "arm": "C",
+      "type": "logic",
+      "challenge_id": "BP20261119N1"
+    },
+    {
+      "date": "2026-11-20",
+      "slot": "N1",
+      "arm": "B",
+      "type": "logic",
+      "challenge_id": "BP20261120N1"
     }
   ]
 }
