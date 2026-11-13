@@ -1,9 +1,9 @@
 {
-  "checked_at_utc": "2026-11-13T07:29:21+00:00",
+  "checked_at_utc": "2026-11-13T10:10:53+00:00",
   "account": "@blinkpuzz",
   "experiment_id": "BP-2026-11-ABCD",
   "count": 12,
-  "experiment_asset_buffer_records": 0,
+  "experiment_asset_buffer_records": 1,
   "duplicate_slot_count": 0,
   "rows": [
     {
@@ -12,8 +12,14 @@
       "arm": "A",
       "family": "sequence",
       "challenge_id": "BP20261115B1",
-      "buffer_posts": [],
-      "number_of_matching_buffer_posts": 0
+      "buffer_posts": [
+        {
+          "buffer_status": "scheduled",
+          "due_at": "2026-11-15T09:00:00.000Z",
+          "is_experiment_asset": true
+        }
+      ],
+      "number_of_matching_buffer_posts": 1
     },
     {
       "date": "2026-11-15",
@@ -23,21 +29,6 @@
       "challenge_id": "BP20261115B2",
       "buffer_posts": [],
       "number_of_matching_buffer_posts": 0
-    },
-    {
-      "date": "2026-11-15",
-      "slot": "base",
-      "arm": "C",
-      "family": "logic",
-      "challenge_id": "BP20261115",
-      "buffer_posts": [
-        {
-          "buffer_status": "scheduled",
-          "due_at": "2026-11-15T18:30:00.000Z",
-          "is_experiment_asset": false
-        }
-      ],
-      "number_of_matching_buffer_posts": 1
     },
     {
       "date": "2026-11-15",
@@ -68,34 +59,10 @@
     },
     {
       "date": "2026-11-16",
-      "slot": "base",
-      "arm": "B",
-      "family": "logic",
-      "challenge_id": "BP20261116",
-      "buffer_posts": [
-        {
-          "buffer_status": "scheduled",
-          "due_at": "2026-11-16T18:30:00.000Z",
-          "is_experiment_asset": false
-        }
-      ],
-      "number_of_matching_buffer_posts": 1
-    },
-    {
-      "date": "2026-11-16",
       "slot": "B3",
       "arm": "A",
       "family": "math",
       "challenge_id": "BP20261116B3",
-      "buffer_posts": [],
-      "number_of_matching_buffer_posts": 0
-    },
-    {
-      "date": "2026-11-17",
-      "slot": "N1",
-      "arm": "B",
-      "family": "sequence",
-      "challenge_id": "BP20261117N1",
       "buffer_posts": [],
       "number_of_matching_buffer_posts": 0
     },
@@ -109,11 +76,11 @@
       "number_of_matching_buffer_posts": 0
     },
     {
-      "date": "2026-11-18",
+      "date": "2026-11-17",
       "slot": "N1",
-      "arm": "A",
-      "family": "logic",
-      "challenge_id": "BP20261118N1",
+      "arm": "B",
+      "family": "sequence",
+      "challenge_id": "BP20261117N1",
       "buffer_posts": [],
       "number_of_matching_buffer_posts": 0
     },
@@ -123,6 +90,33 @@
       "arm": "C",
       "family": "math",
       "challenge_id": "BP20261118",
+      "buffer_posts": [],
+      "number_of_matching_buffer_posts": 0
+    },
+    {
+      "date": "2026-11-18",
+      "slot": "N1",
+      "arm": "A",
+      "family": "logic",
+      "challenge_id": "BP20261118N1",
+      "buffer_posts": [],
+      "number_of_matching_buffer_posts": 0
+    },
+    {
+      "date": "2026-11-19",
+      "slot": "N1",
+      "arm": "C",
+      "family": "logic",
+      "challenge_id": "BP20261119N1",
+      "buffer_posts": [],
+      "number_of_matching_buffer_posts": 0
+    },
+    {
+      "date": "2026-11-20",
+      "slot": "N1",
+      "arm": "B",
+      "family": "logic",
+      "challenge_id": "BP20261120N1",
       "buffer_posts": [],
       "number_of_matching_buffer_posts": 0
     }
