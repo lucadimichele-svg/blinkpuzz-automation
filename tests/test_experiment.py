@@ -14,8 +14,12 @@ def test_balanced_experiment_exactly_12():
     assert all(Counter(row[3] for row in TEST if row[2]==arm)=={'sequence':1,'math':1,'logic':1} for arm in ARMS)
     assert len({row[:2] for row in TEST})==len(TEST)
     assert all(row[1] in dict(slots_for(date.fromisoformat(row[0]))) for row in TEST)
-    assert all(date(2026,11,15)<=date.fromisoformat(row[0])<=date(2026,11,18) for row in TEST)
+    assert all(date(2026,11,15)<=date.fromisoformat(row[0])<=date(2026,11,20) for row in TEST)
     assert assignment('2026-11-14','B1') is None
+    assert assignment('2026-11-15','base') is None
+    assert assignment('2026-11-16','base') is None
+    assert assignment('2026-11-19','N1') == ('C','logic')
+    assert assignment('2026-11-20','N1') == ('B','logic')
 
 
 def test_answers_are_correct_distinct_and_reproducible():
