@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """BlinkPuzz v4 small-scale 4-arm experiment: comparable original 12-second Reels.
 
-12 slots, Nov 15-18 2026. Three distinct challenge families in every arm.
+12 slots, Nov 15-20 2026. Three distinct challenge families in every arm.
 No prior generated assets or Buffer posts are modified.
 """
 from __future__ import annotations
@@ -33,11 +33,11 @@ COLORS = {
 TEST = (
     ('2026-11-15', 'B1', 'A', 'sequence'),
     ('2026-11-15', 'B2', 'B', 'math'),
-    ('2026-11-15', 'base', 'C', 'logic'),
+    ('2026-11-19', 'N1', 'C', 'logic'),
     ('2026-11-15', 'B3', 'D', 'sequence'),
     ('2026-11-16', 'B1', 'D', 'math'),
     ('2026-11-16', 'B2', 'C', 'sequence'),
-    ('2026-11-16', 'base', 'B', 'logic'),
+    ('2026-11-20', 'N1', 'B', 'logic'),
     ('2026-11-16', 'B3', 'A', 'math'),
     ('2026-11-17', 'N1', 'B', 'sequence'),
     ('2026-11-17', 'base', 'D', 'logic'),
@@ -298,7 +298,7 @@ def make_reel(day, slot, out_dir, quick=False):
 
 def plan():
     return {'experiment_id':'BP-2026-11-ABCD','start_date':'2026-11-15',
-            'end_date':'2026-11-18','timezone':'Europe/Berlin',
+            'end_date':'2026-11-20','timezone':'Europe/Berlin',
             'design':'4 arms x 3 Reels each; 12s every Reel; each arm contains sequence, math, logic once',
             'primary_metrics':['comments_per_100_views','average_watch_seconds'],
             'secondary_metrics':['views_48h','likes_per_100_views','shares_per_100_views','follows_48h'],
