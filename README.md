@@ -11,7 +11,7 @@ The Vibsnaxx project is separate and never targeted.
 - Instagram publishing: **OFF** until `AUTO_PUBLISH=true` repository **variable** is explicitly set *after* testing. No live posts confirmed.
 
 
-## Four-arm audience experiment (15–18 November 2026)
+## Four-arm audience experiment (15–20 November 2026)
 
 **Goal:** distinguish whether modest difficulty, withholding the in-video reveal, or plausible answer choices improve meaningful interactions without sacrificing watch time.
 
@@ -20,7 +20,7 @@ The Vibsnaxx project is separate and never targeted.
 - **C:** medium puzzle + no in-video reveal (3 Reels; full spoiler solution in caption)
 - **D:** medium puzzle + three plausible options + no in-video reveal (3 Reels; spoiler solution in caption)
 
-All 12 experimental Reels are 12 seconds long, with the same visual layout and original audio. Each arm includes exactly one sequence, one arithmetic puzzle, and one logic puzzle. The 12 time slots are fixed in `docs/experiment_plan.json`, using the **existing** schedule (four per day until 16 Nov; two per day afterward). Only the exact planned slots are treated, and new media have a separate `-EXP` suffix.
+All 12 experimental Reels are 12 seconds long, with the same visual layout and original audio. Each arm includes exactly one sequence, one arithmetic puzzle, and one logic puzzle. The 12 time slots are fixed in `docs/experiment_plan.json`, using the **existing** schedule (four per day until 16 Nov; two per day afterward). The 15 November and 16 November base slots were already booked with old content, so these two experiment arms were moved to midday on 19 and 20 November. Only the exact planned slots are treated, and new media have a separate `-EXP` suffix.
 
 **Queue safety:** The publisher prefers `-EXP` over `-V3` over legacy media **only for a slot not already present in Buffer**. All prior posts and files are preserved. No separate extra daily posts are created. `src/experiment_report.py` writes a limited read-only Buffer queue audit to `docs/experiment_status.json`; this never proves actual Instagram delivery.
 
