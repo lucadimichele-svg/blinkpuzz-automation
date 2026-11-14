@@ -1,10 +1,10 @@
 {
-  "checked_at_utc": "2026-11-14T19:51:44+00:00",
+  "checked_at_utc": "2026-11-14T21:47:56+00:00",
   "account": "@blinkpuzz",
   "experiment_id": "BP-2026-11-ABCD",
   "count": 12,
-  "experiment_asset_buffer_records": 8,
-  "duplicate_slot_count": 0,
+  "experiment_asset_buffer_records": 9,
+  "duplicate_slot_count": 1,
   "rows": [
     {
       "date": "2026-11-15",
@@ -105,11 +105,16 @@
       "buffer_posts": [
         {
           "buffer_status": "scheduled",
+          "due_at": "2026-11-17T18:30:00.000Z",
+          "is_experiment_asset": true
+        },
+        {
+          "buffer_status": "scheduled",
           "due_at": "2026-11-17T11:00:00.000Z",
           "is_experiment_asset": true
         }
       ],
-      "number_of_matching_buffer_posts": 1
+      "number_of_matching_buffer_posts": 2
     },
     {
       "date": "2026-11-17",
