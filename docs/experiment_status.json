@@ -1,5 +1,5 @@
 {
-  "checked_at_utc": "2026-11-15T19:52:32+00:00",
+  "checked_at_utc": "2026-11-15T21:50:24+00:00",
   "account": "@blinkpuzz",
   "experiment_id": "BP-2026-11-ABCD",
   "count": 12,
@@ -44,7 +44,7 @@
       "challenge_id": "BP20261115B3",
       "buffer_posts": [
         {
-          "buffer_status": "scheduled",
+          "buffer_status": "sent",
           "due_at": "2026-11-15T20:30:00.000Z",
           "is_experiment_asset": true
         }
