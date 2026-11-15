@@ -1,9 +1,9 @@
 {
-  "checked_at_utc": "2026-11-15T14:01:04+00:00",
+  "checked_at_utc": "2026-11-15T19:52:32+00:00",
   "account": "@blinkpuzz",
   "experiment_id": "BP-2026-11-ABCD",
   "count": 12,
-  "experiment_asset_buffer_records": 12,
+  "experiment_asset_buffer_records": 13,
   "duplicate_slot_count": 2,
   "rows": [
     {
@@ -172,8 +172,14 @@
       "arm": "C",
       "family": "logic",
       "challenge_id": "BP20261119N1",
-      "buffer_posts": [],
-      "number_of_matching_buffer_posts": 0
+      "buffer_posts": [
+        {
+          "buffer_status": "scheduled",
+          "due_at": "2026-11-19T11:00:00.000Z",
+          "is_experiment_asset": true
+        }
+      ],
+      "number_of_matching_buffer_posts": 1
     },
     {
       "date": "2026-11-20",
