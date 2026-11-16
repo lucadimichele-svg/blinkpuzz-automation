@@ -1,9 +1,9 @@
 {
-  "checked_at_utc": "2026-11-16T08:57:35+00:00",
+  "checked_at_utc": "2026-11-16T10:46:05+00:00",
   "account": "@blinkpuzz",
   "experiment_id": "BP-2026-11-ABCD",
   "count": 12,
-  "experiment_asset_buffer_records": 13,
+  "experiment_asset_buffer_records": 14,
   "duplicate_slot_count": 2,
   "rows": [
     {
@@ -59,7 +59,7 @@
       "challenge_id": "BP20261116B1",
       "buffer_posts": [
         {
-          "buffer_status": "scheduled",
+          "buffer_status": "sent",
           "due_at": "2026-11-16T09:00:00.000Z",
           "is_experiment_asset": true
         }
@@ -187,8 +187,14 @@
       "arm": "B",
       "family": "logic",
       "challenge_id": "BP20261120N1",
-      "buffer_posts": [],
-      "number_of_matching_buffer_posts": 0
+      "buffer_posts": [
+        {
+          "buffer_status": "scheduled",
+          "due_at": "2026-11-20T11:00:00.000Z",
+          "is_experiment_asset": true
+        }
+      ],
+      "number_of_matching_buffer_posts": 1
     }
   ],
   "note": "Buffer queue/post statuses only, NOT verified Instagram delivery or reach/engagement metrics. Instagram Insights must be supplied separately."
