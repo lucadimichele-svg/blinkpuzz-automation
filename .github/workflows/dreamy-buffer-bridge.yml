@@ -1,0 +1,41 @@
+name: Dreamy Elsewhere Buffer Bridge (check-only)
+
+# Separate, manual-only bridge to reuse the Buffer Free API key already stored
+# in this repository. All existing Blinkpuzz workflows remain untouched.
+# No scheduled execution and no publishing.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-dreamy-channel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    concurrency:
+      group: dreamy-elsewhere-buffer-bridge
+      cancel-in-progress: false
+    steps:
+      - name: Checkout independent Dreamy Elsewhere project
+        uses: actions/checkout@v4
+        with:
+          repository: lucadimichele-svg/dreamy-elsewhere-automation-
+          ref: main
+          path: dreamy
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install "requests>=2.32,<3"
+      - name: Read-only verification of exactly @dreamy_elsewhere
+        working-directory: dreamy
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+          AUTO_PUBLISH: "false"
+        run: |
+          python src/publish.py
+
+# When production and licensed audio are actually operational, create a
+# separately reviewed follow-up workflow. Never piggyback on Blinkpuzz's
+# AUTO_PUBLISH variable or change its existing schedules.
