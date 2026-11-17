@@ -39,14 +39,23 @@ jobs:
               "https://api.buffer.com", data=body,
               headers={"Authorization":"Bearer "+token,"Content-Type":"application/json"}
           )
-          with urllib.request.urlopen(request, timeout=30) as response:
-              result = json.load(response)
-          if result.get("errors"):
-              raise SystemExit("Buffer read failed: "+str(result["errors"])[:400])
-          post = result["data"]["post"]
-          if post["channel"]["name"].strip().lower().lstrip("@") != "dreamy_elsewhere":
-              raise SystemExit("Wrong Instagram channel. Refusing to report.")
-          print("Dreamy Reel Buffer status:",post["status"])
-          print("Sent at:",post.get("sentAt"))
-          print("Actual Instagram Reel URL:",post.get("externalLink") or "(not yet returned)")
+          import time
+          for attempt in range(14):
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  result = json.load(response)
+              if result.get("errors"):
+                  raise SystemExit("Buffer read failed: "+str(result["errors"])[:400])
+              post = result["data"]["post"]
+              if post["channel"]["name"].strip().lower().lstrip("@") != "dreamy_elsewhere":
+                  raise SystemExit("Wrong Instagram channel. Refusing to report.")
+              status = str(post.get("status","")).lower()
+              print("Dreamy Reel Buffer status:",status, "check", attempt + 1, flush=True)
+              print("Sent at:",post.get("sentAt"), flush=True)
+              print("Actual Instagram Reel URL:",post.get("externalLink") or "(not yet returned)", flush=True)
+              if status == "sent":
+                  print("CONFIRMED INSTAGRAM PUBLISHED", flush=True)
+                  break
+              if status in ("error","failed"):
+                  raise SystemExit("Buffer reports delivery failure")
+              time.sleep(8)
           PY
