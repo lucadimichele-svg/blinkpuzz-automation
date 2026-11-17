@@ -25,7 +25,13 @@ def summarize(posts):
         marker=challenge_id(datetime.fromisoformat(day).date(),slot)
         found=[]
         for post in posts:
-            if f'Challenge ID: {marker}' in (post.get('text') or ''):
+            # Exact line match is essential: BP20261117 is NOT BP20261117N1.
+            post_markers = {
+                line.strip().split(':', 1)[1].strip()
+                for line in (post.get('text') or '').splitlines()
+                if line.strip().startswith('Challenge ID:')
+            }
+            if marker in post_markers:
                 found.append(post)
         # Challenge ID is unique; multiple matches mean a queue duplication.
         states=[]
