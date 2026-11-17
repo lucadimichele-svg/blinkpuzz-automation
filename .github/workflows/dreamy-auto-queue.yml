@@ -7,6 +7,10 @@ on:
   schedule:
     - cron: '17 * * * *'
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/dreamy-auto-trigger.txt'
 
 permissions:
   contents: read
