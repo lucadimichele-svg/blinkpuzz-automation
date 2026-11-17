@@ -1,0 +1,52 @@
+name: Dreamy Elsewhere — Read actual Instagram Reel URL
+
+on:
+  push:
+    branches:
+      - dreamy-post-20261117
+    paths:
+      - '.github/workflows/dreamy-link-check.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check-dreamy-reel-url:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Read-only Buffer post verification for published Dreamy Reel
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+          token = os.environ["BUFFER_API_KEY"]
+          query = """query Post($id: PostId!) {
+            post(input:{id:$id}) {
+              id status sentAt externalLink channelId
+              channel { name service }
+            }
+          }"""
+          body = json.dumps({"query": query, "variables": {"id": "6afba6c3f83aaca8f39c77eb"}}).encode()
+          request = urllib.request.Request(
+              "https://api.buffer.com", data=body,
+              headers={"Authorization":"Bearer "+token,"Content-Type":"application/json"}
+          )
+          with urllib.request.urlopen(request, timeout=30) as response:
+              result = json.load(response)
+          if result.get("errors"):
+              raise SystemExit("Buffer read failed: "+str(result["errors"])[:400])
+          post = result["data"]["post"]
+          if post["channel"]["name"].strip().lower().lstrip("@") != "dreamy_elsewhere":
+              raise SystemExit("Wrong Instagram channel. Refusing to report.")
+          print("Dreamy Reel Buffer status:",post["status"])
+          print("Sent at:",post.get("sentAt"))
+          print("Actual Instagram Reel URL:",post.get("externalLink") or "(not yet returned)")
+          PY
