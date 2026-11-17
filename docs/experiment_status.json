@@ -1,10 +1,10 @@
 {
-  "checked_at_utc": "2026-11-17T07:31:58+00:00",
+  "checked_at_utc": "2026-11-17T08:16:44+00:00",
   "account": "@blinkpuzz",
   "experiment_id": "BP-2026-11-ABCD",
   "count": 12,
-  "experiment_asset_buffer_records": 14,
-  "duplicate_slot_count": 2,
+  "experiment_asset_buffer_records": 12,
+  "duplicate_slot_count": 0,
   "rows": [
     {
       "date": "2026-11-15",
@@ -107,14 +107,9 @@
           "buffer_status": "scheduled",
           "due_at": "2026-11-17T18:30:00.000Z",
           "is_experiment_asset": true
-        },
-        {
-          "buffer_status": "scheduled",
-          "due_at": "2026-11-17T11:00:00.000Z",
-          "is_experiment_asset": true
         }
       ],
-      "number_of_matching_buffer_posts": 2
+      "number_of_matching_buffer_posts": 1
     },
     {
       "date": "2026-11-17",
@@ -142,14 +137,9 @@
           "buffer_status": "scheduled",
           "due_at": "2026-11-18T18:30:00.000Z",
           "is_experiment_asset": true
-        },
-        {
-          "buffer_status": "scheduled",
-          "due_at": "2026-11-18T11:00:00.000Z",
-          "is_experiment_asset": true
         }
       ],
-      "number_of_matching_buffer_posts": 2
+      "number_of_matching_buffer_posts": 1
     },
     {
       "date": "2026-11-18",
