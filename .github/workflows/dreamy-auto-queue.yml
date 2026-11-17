@@ -1,0 +1,46 @@
+name: Dreamy Elsewhere — Automatic Buffer Queue
+
+# Dedicated Dreamy bridge ONLY because this repository securely holds the
+# existing Buffer API key. No BlinkPuzz files or publishing jobs are changed.
+# Dreamy code enforces exact Instagram handle matching and dedupe markers.
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dreamy-elsewhere-automatic-buffer-queue
+  cancel-in-progress: false
+
+jobs:
+  queue-dreamy-reels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout Dreamy Elsewhere code only
+        uses: actions/checkout@v4
+        with:
+          repository: lucadimichele-svg/dreamy-elsewhere-automation-
+          ref: main
+          path: dreamy
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install API dependency
+        run: python -m pip install "requests>=2.32,<3"
+      - name: Queue or share only genuine finished Dreamy Reels
+        working-directory: dreamy
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${BUFFER_API_KEY:-}" ]; then
+            echo "Missing existing Buffer key. No posts scheduled." >&2
+            exit 1
+          fi
+          python src/auto_queue.py
