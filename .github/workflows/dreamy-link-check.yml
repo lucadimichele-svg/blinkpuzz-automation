@@ -34,7 +34,7 @@ jobs:
               channel { name service }
             }
           }"""
-          body = json.dumps({"query": query, "variables": {"id": "6afba6c3f83aaca8f39c77eb"}}).encode()
+          body = json.dumps({"query": query, "variables": {"id": "6afcc27bfa88ce86dcaf6ce8"}}).encode()
           request = urllib.request.Request(
               "https://api.buffer.com", data=body,
               headers={"Authorization":"Bearer "+token,"Content-Type":"application/json"}
