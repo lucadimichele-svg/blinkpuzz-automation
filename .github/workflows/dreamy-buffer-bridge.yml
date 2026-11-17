@@ -1,23 +1,28 @@
-name: Dreamy Elsewhere Buffer Bridge (check-only)
+name: Dreamy Elsewhere — Publish first Reel once
 
-# Separate, manual-only bridge to reuse the Buffer Free API key already stored
-# in this repository. All existing Blinkpuzz workflows remain untouched.
-# No scheduled execution and no publishing.
+# One-off Dreamy-only bridge. Runs on its isolated branch using the existing
+# Buffer API key. Never triggers BlinkPuzz production and never posts to it.
 on:
+  push:
+    branches:
+      - dreamy-post-20261117
+    paths:
+      - '.github/workflows/dreamy-buffer-bridge.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: dreamy-elsewhere-one-off-buffer-post
+  cancel-in-progress: false
+
 jobs:
-  verify-dreamy-channel:
+  publish-first-dreamy-reel:
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    concurrency:
-      group: dreamy-elsewhere-buffer-bridge
-      cancel-in-progress: false
     steps:
-      - name: Checkout independent Dreamy Elsewhere project
+      - name: Checkout Dreamy Elsewhere project only
         uses: actions/checkout@v4
         with:
           repository: lucadimichele-svg/dreamy-elsewhere-automation-
@@ -27,23 +32,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: python -m pip install "requests>=2.32,<3"
-      - name: Read-only verification of exactly @dreamy_elsewhere
+      - name: Install Buffer client dependency
+        run: python -m pip install "requests>=2.32,<3"
+      - name: Publish ONLY DE20261117S1 to exact @dreamy_elsewhere now
         working-directory: dreamy
         env:
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
-          AUTO_PUBLISH: "false"
+          DREAMY_POST_ONCE: "true"
         shell: bash
         run: |
           set -euo pipefail
           if [ -z "${BUFFER_API_KEY:-}" ]; then
-            echo 'ERROR: No existing BUFFER_API_KEY secret is available.' >&2
+            echo "Missing existing Buffer API secret; nothing published" >&2
             exit 1
           fi
-          python src/publish.py | tee /tmp/dreamy-buffer-check.log
-          grep -F 'Verified EXACT Instagram channel @dreamy_elsewhere' /tmp/dreamy-buffer-check.log
-          grep -F 'CHECK-ONLY: AUTO_PUBLISH not enabled; no posts created.' /tmp/dreamy-buffer-check.log
-
-# When production and licensed audio are actually operational, create a
-# separately reviewed follow-up workflow. Never piggyback on Blinkpuzz's
-# AUTO_PUBLISH variable or change its existing schedules.
+          python src/publish_now.py
