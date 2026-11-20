@@ -1,0 +1,55 @@
+name: Dreamy Elsewhere — Confirm published Reels for cleanup
+
+# Separate from queue/publishing. Only uses the already connected Buffer key.
+# Saves evidence that a specific @dreamy_elsewhere Reel was truly sent.
+on:
+  schedule:
+    - cron: '29 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/dreamy-buffer-receipts.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dreamy-only-publication-receipt-writer
+  cancel-in-progress: false
+
+jobs:
+  confirm-dreamy-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout only this bridge repository
+        uses: actions/checkout@v4
+      - name: Checkout Dreamy Elsewhere code read-only
+        uses: actions/checkout@v4
+        with:
+          repository: lucadimichele-svg/dreamy-elsewhere-automation-
+          ref: main
+          path: dreamy
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Buffer API dependency
+        run: python -m pip install "requests>=2.32,<3"
+      - name: Verify Instagram @dreamy_elsewhere and collect actual SENT receipts
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+        run: |
+          set -euo pipefail
+          python dreamy/src/export_buffer_receipts.py --output docs/dreamy-published
+      - name: Commit ONLY newly verified Dreamy receipts
+        run: |
+          set -euo pipefail
+          git config user.name dreamy-elsewhere-receipt-bot
+          git config user.email dreamy-elsewhere-receipt-bot@users.noreply.github.com
+          git add docs/dreamy-published
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(dreamy): record confirmed Instagram publication (no publishing)"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
