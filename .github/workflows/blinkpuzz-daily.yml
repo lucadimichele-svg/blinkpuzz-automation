@@ -41,6 +41,8 @@ jobs:
         run: python src/creative_inventory.py
       - name: Render twelve balanced experiment clips (non-destructive)
         run: python src/experiment_inventory.py
+      - name: Generate V4 visually distinct cover and Reel alternatives
+        run: python src/visual_v4_inventory.py
       - name: Validate output media
         run: python src/validate.py docs/media
       - name: Commit generated media only
