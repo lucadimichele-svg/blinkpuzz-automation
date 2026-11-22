@@ -2,7 +2,7 @@ from datetime import date,timedelta
 from collections import Counter
 import sys
 from pathlib import Path
-sys.path.insert(0,str(Path(__file__).resolve().parent))
+sys.path.insert(0,str(Path(__file__).resolve().parents[1] / "src"))
 from visual_v4 import KINDS,build,validate,draw_reel,draw_cover
 
 def test_six_original_templates_and_resolved_answers():
