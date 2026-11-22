@@ -190,7 +190,10 @@ def main():
         marker = challenge_id(day, slot)
         if marker in markers or local.isoformat() in scheduled_times:
             continue
-        rank = (2 if meta.get("experiment_id") == "BP-2026-11-ABCD"
+        # Preserve every already-queued post. For genuinely free slots,
+        # the new fully distinct V4 layouts take precedence.
+        rank = (3 if meta.get("creative_version") == "v4"
+                else 2 if meta.get("experiment_id") == "BP-2026-11-ABCD"
                 else 1 if meta.get("creative_version") == "v3" else 0)
         old = preferred.get(marker)
         if old is None or rank > old[0]:
