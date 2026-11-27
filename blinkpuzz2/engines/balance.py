@@ -73,7 +73,7 @@ def solve(b):
 ENGINE = Engine(
     "balance",
     "Which load balances the pan?",
-    ("Both scales balance. Each shape weighs", "1–6 units and keeps its weight."),
+    ("Both scales balance. Each shape has a", "fixed whole-number weight from 1 to 6."),
     ("desk", "workshop"),
     ("scales", "target", "loads"),
     propose,

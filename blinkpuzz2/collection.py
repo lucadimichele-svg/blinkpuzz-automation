@@ -227,15 +227,32 @@ def archive(folder):
     with tempfile.NamedTemporaryFile(dir=folder.parent, suffix=".zip", delete=False) as temp:
         staged = Path(temp.name)
     try:
+        members = {
+            "index.json",
+            "quality.json",
+            "additional_specs.json",
+            "review_handoff.json",
+            "contact_sheet.jpg",
+            "proof_sheet.jpg",
+            "assets/credits.json",
+            "insights.csv",
+        }
+        for row in read(folder / "index.json")["pilots"]:
+            members.update(row[key] for key in ("video", "cover", "spec", "proof", "proof_frame"))
+        for world, record in read(folder / "assets/credits.json").items():
+            if record["kind"] == "licensed":
+                members.add(f"assets/{world}.png")
         with zipfile.ZipFile(staged, "w") as z:
-            for f in sorted(folder.rglob("*")):
-                if f.is_file():
-                    compression = (
-                        zipfile.ZIP_DEFLATED
-                        if f.suffix in (".json", ".csv")
-                        else zipfile.ZIP_STORED
-                    )
-                    z.write(f, str(f.relative_to(folder)), compress_type=compression)
+            for name in sorted(members):
+                path = (folder / name).resolve()
+                require(
+                    path.is_relative_to(folder.resolve()),
+                    "Archive member is outside the collection",
+                )
+                compression = (
+                    zipfile.ZIP_DEFLATED if path.suffix in (".json", ".csv") else zipfile.ZIP_STORED
+                )
+                z.write(path, name, compress_type=compression)
         with zipfile.ZipFile(staged) as z:
             require(z.testzip() is None, "Archive CRC failure")
         os.replace(staged, dest)

@@ -63,7 +63,7 @@ def solve(b):
 ENGINE = Engine(
     "maze",
     "Which gate reaches the flag?",
-    ("Walk through gaps in the walls.", "Start at A, B or C."),
+    ("Enter at A, B or C and stay inside.", "Walk through gaps in the walls."),
     ("ruins", "editorial"),
     ("size", "entrances", "exit", "passages"),
     propose,

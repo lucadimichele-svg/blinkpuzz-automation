@@ -57,7 +57,7 @@ def solve(b):
 ENGINE = Engine(
     "nonogram",
     "Which print fits the grid?",
-    ("Numbers count solid blocks in order.", "Separate each run by an empty square."),
+    ("Numbers count consecutive filled squares.", "Leave at least one gap between runs."),
     ("arcade", "desk"),
     ("rows", "columns", "prints"),
     propose,
