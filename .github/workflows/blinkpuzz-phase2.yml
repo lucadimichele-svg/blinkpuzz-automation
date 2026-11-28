@@ -1,0 +1,54 @@
+name: BlinkPuzz Phase 2 creative collection
+on:
+  push:
+    branches: [blinkpuzz-2-dev]
+    paths:
+      - 'blinkpuzz2/phase2/**'
+      - 'tests_v2/test_phase2*.py'
+      - '.github/workflows/blinkpuzz-phase2.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collection:
+    if: github.ref == 'refs/heads/blinkpuzz-2-dev'
+    runs-on: ubuntu-24.04
+    container: python:3.12.14-slim-trixie
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install local renderer and test dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends blender ffmpeg fonts-dejavu-core fonts-dejavu-extra
+          python -m pip install -r requirements.txt Pillow==12.3.0 pytest
+          blender --version | head -1
+          ffmpeg -version | head -1
+      - name: Exercise both generations and legacy regressions
+        env:
+          BLINKPUZZ_FULL_RENDER: '1'
+        run: python -m pytest -q tests tests_v2
+      - name: Render and verify all 24 pilots
+        run: python -m blinkpuzz2.phase2.collection
+      - uses: actions/upload-artifact@v4
+        id: upload
+        with:
+          name: blinkpuzz-phase2-24-pilots
+          path: build/v2/phase2/pilots.zip
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 30
+      - name: Download the uploaded collection
+        uses: actions/download-artifact@v4
+        with:
+          name: blinkpuzz-phase2-24-pilots
+          path: build/v2/phase2-roundtrip
+      - name: Check the downloaded bytes and every enclosed file
+        run: |
+          cmp build/v2/phase2/pilots.zip build/v2/phase2-roundtrip/pilots.zip
+          python -m blinkpuzz2.phase2.collection --verify build/v2/phase2-roundtrip/pilots.zip
+          sha256sum build/v2/phase2-roundtrip/pilots.zip
