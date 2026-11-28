@@ -1,0 +1,39 @@
+name: Downloadable BlinkPuzz 2.0 pilots
+on:
+  push:
+    branches: [blinkpuzz-2-dev]
+    paths:
+      - docs/v2/pilot-archive.json
+      - .github/workflows/blinkpuzz-v2-reviewed-archive.yml
+      - blinkpuzz2/reviewed_archive.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  artifact:
+    if: github.ref == 'refs/heads/blinkpuzz-2-dev'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    container: python:3.12.14-slim-trixie
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install reference renderer
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends ffmpeg=7:7.1.5-0+deb13u1 fonts-dejavu-core fonts-dejavu-extra
+          python -m pip install Pillow==12.3.0
+      - name: Render and verify reviewed archive
+        run: |
+          python -m blinkpuzz2.cli pilots --count 20 --seed 20261127 --out build/v2/pilots
+          python -m blinkpuzz2.reviewed_archive build/v2/pilots.zip docs/v2/pilot-archive.json build/v2/pilots.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blinkpuzz-2-pilots
+          path: build/v2/pilots.zip
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
