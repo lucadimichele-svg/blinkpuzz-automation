@@ -2,3 +2,5 @@ One-time read-only verification of the automatic Dreamy Elsewhere Buffer queue.
 Only @dreamy_elsewhere; no other brand content or posts.
 
 Nachholversuch Dreamy S4 2026-11-17 – Trigger nach erfolgreichem MP4-Render: DE20261117S4.
+
+2026-11-28 17:05 Europe/Berlin — one-time trigger: ready rendered Reel DE20261128S3. Use current existing dedupe-safe Buffer bridge for @dreamy_elsewhere only; not a new rendering or production job.
