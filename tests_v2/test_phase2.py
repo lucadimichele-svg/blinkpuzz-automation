@@ -126,3 +126,32 @@ def test_projected_mesh_displacement_fails():
     receipt["emitter"][0] += 1
     with pytest.raises(ValueError):
         check_camera(st, receipt)
+
+
+def test_moth_spot_must_stay_on_its_own_forewing():
+    spec = make("search", 89)
+    stage = build_scene(spec)
+    spot = next(n for n in stage.nodes if n.get("tag") == "sample-spot-1-0")
+    spot["pos"][0] += 40
+    with pytest.raises(ValueError):
+        check_scene(spec, stage)
+
+
+def test_poster_preserves_reference_in_square_crop(monkeypatch):
+    from PIL import Image, ImageDraw
+
+    from blinkpuzz2.phase2 import film
+
+    spec = make("search", 40)
+    stage = build_scene(spec)
+    x, y = stage.markers["sample"]
+    plate = Image.new("RGB", (1080, 1920), "#a59482")
+    color = (156, 40, 34)
+    ImageDraw.Draw(plate).ellipse((x - 80, y - 80, x + 80, y + 80), fill=color)
+    monkeypatch.setattr(film, "passes", lambda cache: (plate, {}))
+    poster, labels = film.Shot(spec, stage, None).cover()
+    crop = poster.crop((0, 420, 1080, 1500))
+    # Check the visible reference area, not just the position of the marker.
+    visible = sum(n for n, c in crop.getcolors(maxcolors=1080 * 1080) if c == color)
+    assert visible > 19000
+    assert all(420 <= label["box"][1] < label["box"][3] <= 1500 for label in labels)

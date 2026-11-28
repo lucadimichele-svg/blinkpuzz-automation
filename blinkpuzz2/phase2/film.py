@@ -127,15 +127,15 @@ def text_on_scene(im, xy, txt, face, size, color, anchor, records, maxw=860):
     )
 
 
-def title(im, s, cover=False):
+def title(im, s):
     lines = TITLES[s.family]
     align = lines[-1]
     # The clock uses the space beneath its movement. Covers bring type into the grid crop.
     low = s.family == "gears"
-    cy = (1320 if low else 493) if cover else (1348 if low else 275)
+    cy = 1348 if low else 275
     mask = Image.new("L", (1, 1920))
     # Optical falloff across native imagery, without a new plaque or instruction card.
-    end = cy + 119 + (49 if s.instruction and not cover else 0)
+    end = cy + 119 + (49 if s.instruction else 0)
     mask.putdata(
         [
             round(246 * max(0, min(1, (end + 90 - y) / 90)))
@@ -151,15 +151,15 @@ def title(im, s, cover=False):
     for i, txt in enumerate(lines[:2]):
         text_on_scene(
             im,
-            (x, cy + (88 if cover else 80) * i),
+            (x, cy + 80 * i),
             txt,
             lines[2],
-            79 if cover else 75,
+            75,
             "#fff4d9",
             anchor,
             rec,
         )
-    if s.instruction and not cover:
+    if s.instruction:
         text_on_scene(im, (x, cy + 146), s.instruction, "sans", 39, ACCENT[s.family], anchor, rec)
     # A restrained wordmark in a protected margin, outside the playable geometry.
     if not low:
@@ -180,7 +180,7 @@ class Shot:
     def __init__(self, s, st, cache):
         self.s, self.st = s, st
         self.beauty, self.sprites = passes(cache)
-        self.base, self.type_audit = title(self.beauty, s)
+        self.set_with_labels = self.beauty.copy()
         self.m = st.markers
         self.accent = ACCENT[s.family]
         # Permanently visible labels on physical fittings, never on transient cards.
@@ -191,14 +191,23 @@ class Shot:
             text = lab["text"]
             if text == "?":
                 continue
-            d = ImageDraw.Draw(self.base)
+            d = ImageDraw.Draw(self.set_with_labels)
             w = max(size * 0.82, d.textlength(text, font=font("cond", size)) / 2 + 4)
             d.rounded_rectangle(
                 (x - w, y - size * 0.64, x + w, y + size * 0.64), radius=15, fill="#18252c"
             )
             text_on_scene(
-                self.base, (x, y), text, "cond", size, "#fff4d9", "mm", self.fitting_audit, 100
+                self.set_with_labels,
+                (x, y),
+                text,
+                "cond",
+                size,
+                "#fff4d9",
+                "mm",
+                self.fitting_audit,
+                100,
             )
+        self.base, self.type_audit = title(self.set_with_labels, s)
         self.static = self.objects(self.base.copy(), 0, False)
         self.paint(self.static, 0, False)
 
@@ -335,8 +344,58 @@ class Shot:
         return im
 
     def cover(self):
-        # Frame the objects as a poster print; the opening film remains independently playable.
-        bare = self.objects(self.beauty.copy(), 0, False)
+        # Keep the solve-tableau fittings on the poster. A single headline lets the
+        # sample and the upper controls clear the title inside the square grid crop.
+        bare = self.objects(self.set_with_labels.copy(), 0, False)
         self.paint(bare, 0, False)
-        im, audit = title(bare, self.s, True)
-        return im, audit
+        family = self.s.family
+        shift = 49 if family == "search" else 0
+        if shift:
+            bare.paste(bare.crop((0, 0, 1080, 1920 - shift)), (0, shift))
+        low = family == "gears"
+        y = 1436 if low else 496
+        mask = Image.new("L", (1, 1920))
+        mask.putdata(
+            [
+                round(247 * max(0, min(1, (v - 1327) / 46 if low else (568 - v) / 28)))
+                for v in range(1920)
+            ]
+        )
+        poster = Image.composite(
+            Image.new("RGB", bare.size, "#18252c"), bare, mask.resize(bare.size)
+        )
+        line = {
+            "laser": "Which crystal lights up?",
+            "maze": "Which gate reaches the flag?",
+            "search": "Find the matching moth.",
+            "mismatch": "Spot the changed control.",
+            "fit": "Which insert fits?",
+            "pipes": "Which pipe fits the gap?",
+            "gears": "Which way will red turn?",
+            "shadow": "Which tower casts it?",
+        }[family]
+        center = TITLES[family][-1] == "center"
+        x = 502 if center else 78
+        anchor = "mm" if center else "lm"
+        records = []
+        text_on_scene(
+            poster,
+            (x, y - 58),
+            "BLINKPUZZ   /   " + self.s.grammar.upper(),
+            "mono",
+            32,
+            ACCENT[family],
+            anchor,
+            records,
+        )
+        text_on_scene(poster, (x, y), line, TITLES[family][2], 76, "#fff4d9", anchor, records)
+        require(
+            all(420 <= r["box"][1] < r["box"][3] <= 1500 for r in records),
+            "Grid crop cuts cover title",
+        )
+        if family == "search":
+            require(
+                max(r["box"][3] for r in records) < self.m["sample"][1] + shift - 100,
+                "Cover hides reference moth",
+            )
+        return poster, records

@@ -122,13 +122,35 @@ def check_scene(s, st):
             [*b["specimens"], [*b["sample"], 0, 0, 0]]
         ):
             tag = f"moth-{i}" if i < len(b["specimens"]) else "sample"
+            cols, rows = b["shape"]
+            if tag == "sample":
+                origin = st.floor(513, 615, 67)
+                magnification = 1.48
+            else:
+                origin = st.floor(
+                    123 + (i % cols + 0.5) * 758 / cols + dx,
+                    746 + (i // cols + 0.5) * 677 / rows + dy,
+                    30,
+                )
+                magnification = 1.12 if rows < 4 else 1.03
             for side in ("left", "right"):
                 n = by[f"{tag}-{side}"]
+                close(n["pos"], offset(origin, dz=8 * magnification))
                 require(len(n["outline"]) == (8, 9, 10)[wing], "Wing contour differs")
             for side in (-1, 1):
                 require(
                     sum(k.startswith(f"{tag}-spot-{side}-") for k in by) == spots, "Eyespots differ"
                 )
+                a = math.radians(angle)
+                for j, (u, v) in enumerate([(30, -14), (41, -24), (19, -9)][:spots]):
+                    n = by[f"{tag}-spot-{side}-{j}"]
+                    x = (side * u * math.cos(a) - v * math.sin(a)) * magnification
+                    y = (side * u * math.sin(a) + v * math.cos(a)) * magnification
+                    close(n["pos"], offset(origin, x, y, 16 * magnification))
+                    require(
+                        abs(n["r"] - 5.8 * magnification) < 0.01 and n["mat"] == "wingtip",
+                        "Invisible eyespot",
+                    )
             # Check the projected union of both forewings, including rotation and the specimen's physical height.
             points = [
                 st.screen([n["pos"][0] + u, n["pos"][1] + v, n["pos"][2]])

@@ -124,7 +124,7 @@ def fingerprint(path):
     # 576-bit gradient fingerprint of gameplay only; exclude the headline and watermark.
     with Image.open(path) as im:
         grey = im.crop((65, 505, 950, 1495)).convert("L").resize((25, 24), Image.Resampling.LANCZOS)
-        p = list(grey.getdata())
+        p = grey.tobytes()
     return sum(
         (p[y * 25 + x] < p[y * 25 + x + 1]) << (24 * y + x) for y in range(24) for x in range(24)
     )
